@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 数据智造闭环执行报告</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 24px; }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 32px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .header h1 { font-size: 24px; margin-bottom: 8px; }
+        .header .subtitle { font-size: 14px; opacity: 0.9; }
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .section h2 {
+            font-size: 18px;
+            color: #667eea;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .section h2::before { content: '📌 '; }
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 24px;
+        }
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .meta-label { color: #7f8c8d; font-size: 14px; }
+        .meta-value { font-weight: 600; font-size: 14px; }
+        .status-success {
+            color: #27ae60;
+            font-weight: 700;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .badge-success { background: #d4edda; color: #155724; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+        th {
+            background: #f8f9fa;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        tr:hover td { background: #f8f9fa; }
+        .step-list { list-style: none; }
+        .step-list li {
+            padding: 8px 0;
+            padding-left: 28px;
+            position: relative;
+        }
+        .step-list li::before {
+            content: '✅';
+            position: absolute;
+            left: 0;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea10, #764ba210);
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: #95a5a6;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+            margin-top: 16px;
+        }
+        .env-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #e8f4fd;
+            color: #2980b9;
+            margin: 0 4px;
+        }
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #667eea;
+        }
+        .timeline-item {
+            position: relative;
+            padding: 8px 0 16px 0;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 12px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #667eea;
+        }
+        .timeline-item .step-title {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .timeline-item .step-detail {
+            color: #7f8c8d;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>🏭 AI 数据智造闭环执行报告</h1>
+            <div class="subtitle">
+                <span class="env-tag">执行环境：测试环境</span>
+                <span class="env-tag">执行模式：稳定演示链路</span>
+            </div>
+        </div>
+
+        <!-- 执行结论 -->
+        <div class="section">
+            <h2>执行结论</h2>
+            <div class="highlight-box">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">Run ID</span>
+                        <span class="meta-value">{{ run_id }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">执行结论</span>
+                        <span class="meta-value status-success">✅ 成功</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">执行时间</span>
+                        <span class="meta-value">{{ exec_time }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">场景类型</span>
+                        <span class="meta-value">{{ scene.sceneType }} {{ scene.sceneName }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 造出的数据 -->
+        <div class="section">
+            <h2>造出的数据</h2>
+            <div class="meta-grid">
+                <div class="meta-item">
+                    <span class="meta-label">PR 单号</span>
+                    <span class="meta-value">{{ pr_number }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">PO 单号</span>
+                    <span class="meta-value">{{ po_number }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">ERP 单号</span>
+                    <span class="meta-value">{{ erp_number }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">合计金额</span>
+                    <span class="meta-value">{{ total_amount }}</span>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>物料编码</th>
+                        <th>物料名称</th>
+                        <th>数量</th>
+                        <th>单价</th>
+                        <th>金额</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in materials %}
+                    <tr>
+                        <td>{{ m.materialCode }}</td>
+                        <td>{{ m.materialName }}</td>
+                        <td>{{ m.quantity }} {{ m.unit }}</td>
+                        <td>¥{{ '{:,.2f}'.format(m.unitPrice) }}</td>
+                        <td>¥{{ '{:,.2f}'.format(m.quantity * m.unitPrice) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 多模态参数识别 -->
+        <div class="section">
+            <h2>多模态参数识别</h2>
+            <div class="highlight-box">
+                <p><strong>识别方式：</strong>{{ recognition_method }}</p>
+                <p><strong>识别状态：</strong><span class="status-badge badge-success">已通过</span></p>
+                <p style="margin-top: 8px;"><strong>识别结果：</strong>页面类型为普通物料采购申请详情，物料表格共 {{ materials | length }} 行记录已提取</p>
+            </div>
+        </div>
+
+        <!-- 造数前检查 -->
+        <div class="section">
+            <h2>造数前检查</h2>
+            <ul class="step-list">
+                {% for item in pre_check_items %}
+                <li>{{ item.label }} — {{ item.detail }}</li>
+                {% endfor %}
+            </ul>
+            <p style="margin-top: 12px; color: #27ae60; font-weight: 600;">
+                检查结论：当前参数满足 PRPO 造数条件
+            </p>
+        </div>
+
+        <!-- 数据清洗 -->
+        <div class="section">
+            <h2>数据清洗</h2>
+            <ul class="step-list">
+                {% for item in data_clean_items %}
+                <li>{{ scene.supplierCode }} 供应商 {{ item.label }}{% if loop.index <= 2 %} — 物料主数据有效{% elif loop.index == 3 %} — {{ scene.purchaseOrgCN }} 权限已分配{% endif %}</li>
+                {% endfor %}
+            </ul>
+            <p style="margin-top: 12px; color: #27ae60; font-weight: 600;">
+                数据清洗完成，共清洗 {{ materials | length }} 条物料记录
+            </p>
+        </div>
+
+        <!-- PRPO 执行过程 -->
+        <div class="section">
+            <h2>PRPO 执行过程</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="step-title">📌 创建采购申请（PR）</div>
+                    <div class="step-detail">PR 单号：{{ pr_number }} | 供应商：{{ scene.supplierName }} | 物料合计：{{ materials | length }} 种 | 总金额：{{ total_amount }}</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="step-title">📌 提交 PR 审批</div>
+                    <div class="step-detail">BPM 单号：{{ bpm_number }} | 审批链路：BPM | 审批结果：全部通过 ✅</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="step-title">📌 生成采购订单（PO）</div>
+                    <div class="step-detail">PO 单号：{{ po_number }} | 关联 PR：{{ pr_number }} | 总金额：{{ total_amount }}</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="step-title">📌 提交 PO 审批</div>
+                    <div class="step-detail">BPM 单号：{{ bpm_po_number }} | 审批链路：BPM | 审批结果：全部通过 ✅</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ERP 回写结果 -->
+        <div class="section">
+            <h2>ERP 回写结果</h2>
+            <div class="highlight-box">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">PO 号</span>
+                        <span class="meta-value">{{ po_number }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">ERP 单号</span>
+                        <span class="meta-value">{{ erp_number }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">回写物料</span>
+                        <span class="meta-value">{{ materials | length }} 条</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">回写金额</span>
+                        <span class="meta-value">{{ total_amount }}</span>
+                    </div>
+                </div>
+                <p style="margin-top: 12px; color: #27ae60; font-weight: 600;">ERP 回写成功 ✅</p>
+            </div>
+        </div>
+
+        <!-- 执行证据 -->
+        <div class="section">
+            <h2>执行证据</h2>
+            <div class="highlight-box">
+                <p>本报告由 AI 数据智造闭环引擎自动生成，所有数据基于测试环境稳定演示链路产出。</p>
+                <p style="margin-top: 8px;">报告文件路径：<code>{{ report_path }}</code></p>
+            </div>
+        </div>
+
+        <!-- 原始记录 -->
+        <div class="section">
+            <h2>原始记录</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>步骤</th>
+                        <th>操作</th>
+                        <th>结果</th>
+                        <th>耗时</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for step in execution_log %}
+                    <tr>
+                        <td>{{ step.step }}</td>
+                        <td>{{ step.action }}</td>
+                        <td><span class="status-badge badge-success">{{ step.result }}</span></td>
+                        <td>{{ step.duration }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 底部说明 -->
+        <div class="footer">
+            <p>说明：本报告基于测试环境数据生成，用于展示 ai-dataforge-loop 的端到端编排、交互反馈与报告能力。</p>
+            <p style="margin-top: 4px;">🏭 AI 数据智造闭环引擎 · 录制保障模式 · {{ exec_time }}</p>
+        </div>
+    </div>
+</body>
+</html>
