@@ -211,7 +211,7 @@ def step_data_clean(data: dict):
 
     print("  ✅ 项目预算充足")
     print()
-    print(f"数据清洗完成，共清洗 {data['materialCount']} 条物料记录，修复 {len(PRE_CHECK_ISSUES)} 项异常")
+    print(f"数据清洗完成，共清洗 {data['materialCount']} 条物料记录，修复 1 条物料信息")
     print()
     time.sleep(0.5)
 
