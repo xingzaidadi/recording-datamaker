@@ -20,29 +20,29 @@ DEFAULT_SCENE: Dict[str, Any] = {
     "sceneType": "ZNB",
     "sceneName": "普通采购 PRPO 造数",
     "stockOrg": "MI_IOT",
-    "stockOrgCN": "生态链库存组织",
+    "stockOrgCN": "生态链",
     "purchaseOrg": "2120",
     "purchaseOrgCN": "生态链采购组织",
-    "supplierCode": "SUP20260628001",
-    "supplierName": "测试供应商科技有限公司",
-    "projectCode": "PRJ20260628001",
-    "shipLocCode": "SHIP20260628001",
-    "shipLocName": "华东测试发货地点",
+    "supplierCode": "108062",
+    "supplierName": "威海市泓淋电力技术股份有限公司",
+    "projectCode": "EcoOdmJdm20240708220947-EU",
+    "shipLocCode": "129797",
+    "shipLocName": "深圳发货地点",
     "currency": "CNY",
     "materials": [
         {
-            "materialCode": "MAT20260628001",
-            "materialName": "测试结构件物料A",
-            "quantity": 2,
-            "unitPrice": 10000.00,
-            "unit": "PCS"
+            "materialCode": "1710301000006A",
+            "materialName": "生态链结构件_注塑件_注塑件_1_4 Kg_4_STL001_1234990_Longcheer",
+            "quantity": 10000,
+            "unitPrice": 18.50,
+            "unit": "PC"
         },
         {
-            "materialCode": "MAT20260628002",
-            "materialName": "测试电子件物料B",
-            "quantity": 2,
-            "unitPrice": 12000.00,
-            "unit": "PCS"
+            "materialCode": "1710301000006B",
+            "materialName": "生态链结构件_注塑件_注塑件_1_4 Kg_4_STL001_3443231_Longcheer",
+            "quantity": 10000,
+            "unitPrice": 22.00,
+            "unit": "PC"
         }
     ]
 }
@@ -79,11 +79,14 @@ class NumberGenerator:
 
     @classmethod
     def pr_number(cls, date_str: Optional[str] = None) -> str:
-        """生成 PR 单号: PR{YYYYMMDD}{seq}"""
+        """生成 PR 单号: 84{MM}{DD}{seq:04d}（如 8440027538）"""
         if date_str is None:
             date_str = datetime.now().strftime("%Y%m%d")
+        now = datetime.strptime(date_str, "%Y%m%d")
+        mm = now.strftime("%m")
+        dd = now.strftime("%d")
         seq = cls._next_seq("PR")
-        return f"PR{date_str}{seq:04d}"
+        return f"84{mm}{dd}{seq:04d}"
 
     @classmethod
     def bpm_number(cls, date_str: Optional[str] = None) -> str:
@@ -103,24 +106,23 @@ class NumberGenerator:
 
     @classmethod
     def po_number(cls, date_str: Optional[str] = None) -> str:
-        """生成 PO 单号: PO{YYYYMMDD}{seq}"""
+        """生成 PO 单号: 60{MMDD}{seq:04d}（如 6000142883 → 6006280001）"""
         if date_str is None:
             date_str = datetime.now().strftime("%Y%m%d")
+        now = datetime.strptime(date_str, "%Y%m%d")
+        mmdd = now.strftime("%m%d")
         seq = cls._next_seq("PO")
-        return f"PO{date_str}{seq:04d}"
+        return f"60{mmdd}{seq:04d}"
 
     @classmethod
     def erp_number(cls, date_str: Optional[str] = None) -> str:
-        """生成 ERP 单号: 45{YY}{MMDD}{seq}"""
+        """生成 ERP 单号: 45{MM}{seq:06d}（如 4500233605）"""
         if date_str is None:
-            now = datetime.now()
-            date_str = now.strftime("%Y%m%d")
-        else:
-            now = datetime.strptime(date_str, "%Y%m%d")
-        yy = now.strftime("%y")
-        mmdd = now.strftime("%m%d")
+            date_str = datetime.now().strftime("%Y%m%d")
+        now = datetime.strptime(date_str, "%Y%m%d")
+        mm = now.strftime("%m")
         seq = cls._next_seq("ERP")
-        return f"45{yy}{mmdd}{seq:04d}"
+        return f"45{mm}{seq:06d}"
 
 
 # ============================================================
@@ -221,12 +223,18 @@ def prepare_execution_data(scene: Optional[Dict[str, Any]] = None) -> Dict[str, 
 # ============================================================
 
 PRE_CHECK_ITEMS = [
-    {"key": "supplierRelation", "label": "供应商物料关系验证", "detail": "关系有效"},
-    {"key": "aslRelation", "label": "ASL 关系验证", "detail": "物料已维护 ASL"},
-    {"key": "feePnBinding", "label": "费用 PN 绑定", "detail": "费用 PN 已绑定"},
-    {"key": "feeConfig", "label": "费用项配置", "detail": "费用项有效"},
-    {"key": "pricingStatus", "label": "定价单状态", "detail": "定价单已生效"},
-    {"key": "orgProjectMapping", "label": "组织与项目映射", "detail": "组织项目关系正确"},
+    {"key": "supplierRelation", "label": "供应商物料关系验证", "detail": "关系有效", "passed": True},
+    {"key": "aslRelation", "label": "ASL 关系验证", "detail": "物料已维护 ASL", "passed": True},
+    {"key": "feePnBinding", "label": "费用 PN 绑定", "detail": "费用 PN 已绑定", "passed": True},
+    {"key": "feeConfig", "label": "费用项配置", "detail": "费用项有效", "passed": True},
+    {"key": "pricingStatus", "label": "定价单状态", "detail": "物料 1710301000006A 定价单缺失，需补充", "passed": False},
+    {"key": "orgProjectMapping", "label": "组织与项目映射", "detail": "组织项目关系正确", "passed": True},
+]
+
+# 前置检查发现的问题 → 触发数据清洗
+PRE_CHECK_ISSUES = [
+    "物料 1710301000006A 缺少有效定价单",
+    "供应商 108062 在采购组织 2120 下的价格信息未维护",
 ]
 
 DATA_CLEAN_ITEMS = [

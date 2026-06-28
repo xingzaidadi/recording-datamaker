@@ -31,6 +31,7 @@ from data_provider import (
     calc_total_amount,
     format_currency,
     PRE_CHECK_ITEMS,
+    PRE_CHECK_ISSUES,
     DATA_CLEAN_ITEMS,
     APPROVAL_FLOW_PR,
     APPROVAL_FLOW_PO,
@@ -153,7 +154,7 @@ def step_confirm(data: dict):
 # ============================================================
 
 def step_pre_check(data: dict):
-    """Step 3: 造数前检查"""
+    """Step 3: 造数前检查 — 发现问题后触发数据清洗"""
     print_step_header(3, "前置检查（造数前检查）")
 
     scene = data["scene"]
@@ -164,9 +165,20 @@ def step_pre_check(data: dict):
         detail = item["detail"]
         if item["key"] == "supplierRelation":
             detail = f"{scene['supplierCode']} 关系有效"
-        print_check_item(item["label"], detail)
+        passed = item.get("passed", True)
+        print_check_item(item["label"], detail, passed=passed)
     print()
-    print("检查结论：当前参数满足 PRPO 造数条件")
+
+    # 统计结果
+    failed = [i for i in PRE_CHECK_ITEMS if not i.get("passed", True)]
+    if failed:
+        print(f"⚠️ 检查发现 {len(failed)} 项异常，需执行数据清洗后重试")
+        for issue in PRE_CHECK_ISSUES:
+            print(f"  → {issue}")
+        print()
+        print("下一步：数据清洗")
+    else:
+        print("检查结论：当前参数满足 PRPO 造数条件")
     print()
     time.sleep(0.5)
 
@@ -176,7 +188,7 @@ def step_pre_check(data: dict):
 # ============================================================
 
 def step_data_clean(data: dict):
-    """Step 4: 数据清洗"""
+    """Step 4: 数据清洗 — 修复前置检查发现的问题"""
     print_step_header(4, "数据清洗")
 
     scene = data["scene"]
@@ -186,14 +198,20 @@ def step_data_clean(data: dict):
 
     # 物料主数据验证
     for m in scene["materials"]:
-        print(f"✅ {m['materialCode']} 物料主数据有效")
+        print(f"  ✅ {m['materialCode']} 物料主数据有效")
 
-    print(f"✅ 供应商 {scene['supplierCode']} 状态正常")
-    print(f"✅ 采购组织 {scene['purchaseOrg']} 权限已分配")
-    print("✅ 价格信息有效")
-    print("✅ 项目预算充足")
+    print(f"  ✅ 供应商 {scene['supplierCode']} 状态正常")
+    print(f"  ✅ 采购组织 {scene['purchaseOrg']} 权限已分配")
+
+    # 修复前置检查发现的问题
+    print("  🔧 补充物料 1710301000006A 定价单信息...")
+    print("  🔧 维护供应商 108062 在采购组织 2120 下的价格信息...")
+    print("  ✅ 定价单信息已补充")
+    print("  ✅ 价格信息已维护")
+
+    print("  ✅ 项目预算充足")
     print()
-    print(f"数据清洗完成，共清洗 {data['materialCount']} 条物料记录")
+    print(f"数据清洗完成，共清洗 {data['materialCount']} 条物料记录，修复 {len(PRE_CHECK_ISSUES)} 项异常")
     print()
     time.sleep(0.5)
 
